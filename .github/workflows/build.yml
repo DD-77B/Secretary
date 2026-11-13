@@ -1,0 +1,40 @@
+name: Build Secretary APK
+
+on:
+  push:
+    paths:
+      - 'secretary-app.zip'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack project
+        run: unzip -q -o secretary-app.zip -d src
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        working-directory: src/secretary-app
+        run: gradle assembleDebug --no-daemon
+
+      - name: Rename
+        run: cp src/secretary-app/app/build/outputs/apk/debug/app-debug.apk Secretary.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Secretary-APK
+          path: Secretary.apk
